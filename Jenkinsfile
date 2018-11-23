@@ -1,5 +1,3 @@
-Jenkinsfile (Declarative Pipeline)
-
 pipeline {
 
     agent any  //在任何可用的代理上执行这个 Pipeline 或其任意 stage

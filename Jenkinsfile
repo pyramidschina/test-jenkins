@@ -1,9 +1,12 @@
+
+tools {
+    //工具名称必须在Jenkins 管理Jenkins → 全局工具配置中预配置。
+    maven 'Maven'
+}
+
 node {
 
-    tools {
-        //工具名称必须在Jenkins 管理Jenkins → 全局工具配置中预配置。
-        maven 'Maven'
-    }
+
 
     stage('Configure') {
         env.PATH = "/usr/local/apache-maven/bin:${env.PATH}"

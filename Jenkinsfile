@@ -1,23 +1,46 @@
-pipeline {
+node {
 
-    agent any  //在任何可用的代理上执行这个 Pipeline 或其任意 stage
+    stage('Configure') {
+        env.PATH = "${tool 'maven-3.3.9'}/bin:${env.PATH}"
+        version = '1.0.' + env.BUILD_NUMBER
+        currentBuild.displayName = version
 
-    stages {
-        stage('Build') { //定义 "Build" stage
-            steps {
-                // 执行和 "Build" stage 相关的 st
+        properties([
+                buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')),
+                [$class: 'GithubProjectProperty', displayName: '', projectUrlStr: 'https://github.com/bertjan/spring-boot-sample/'],
+                pipelineTriggers([[$class: 'GitHubPushTrigger']])
+            ])
+    }
 
-            }
-        }
-        stage('Test') { // 定义  "Test" stage
-            steps {
-                // 执行和 "Test" stage 相关的 step
-            }
-        }
-        stage('Deploy') {
-            steps {
-                //
-            }
+    stage('Checkout') {
+        git ' https://github.com/pyramidschina/test-jenkins.git'
+    }
+
+    stage('Version') {
+        sh "echo \'\ninfo.build.version=\'$version >> src/main/resources/application.properties || true"
+        sh "mvn -B -V -U -e versions:set -DnewVersion=$version"
+    }
+
+    stage('Build') {
+        sh 'mvn -B -V -U -e clean package'
+    }
+
+    stage('Archive') {
+        junit allowEmptyResults: true, testResults: '**/target/**/TEST*.xml'
+    }
+
+    stage('Deploy') {
+        // Depends on the 'Credentials Binding Plugin'
+        // (https://wiki.jenkins-ci.org/display/JENKINS/Credentials+Binding+Plugin)
+        withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: 'cloudfoundry',
+                          usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+            sh '''
+                curl -L "https://cli.run.pivotal.io/stable?release=linux64-binary&source=github" | tar -zx
+                ./cf api https://api.run.pivotal.io
+                ./cf auth $USERNAME $PASSWORD
+                ./cf target -o bertjan-demo -s development
+                ./cf push
+               '''
         }
     }
 }

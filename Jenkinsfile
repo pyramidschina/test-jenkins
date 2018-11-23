@@ -1,9 +1,5 @@
-pipeline {
 
-    tools {
-        //工具名称必须在Jenkins 管理Jenkins → 全局工具配置中预配置。
-        maven 'Maven'
-    }
+node {
 
     stage('Configure') {
         env.PATH = "/usr/local/apache-maven/bin:${env.PATH}"
@@ -27,7 +23,7 @@ pipeline {
     }
 
     stage('Build') {
-        sh 'mvn -B -V -U -e clean package'
+        sh '/usr/local/apache-maven/bin/mvn -B -V -U -e clean package'
     }
 
 }

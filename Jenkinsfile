@@ -1,7 +1,7 @@
 node {
 
     stage('Configure') {
-        env.PATH = "/user/local/maven/bin:${env.PATH}"
+        env.PATH = "/usr/local/apache-maven/bin:${env.PATH}"
         //version = '1.0.' + env.BUILD_NUMBER
         //currentBuild.displayName = version
 
